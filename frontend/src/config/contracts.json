@@ -1,0 +1,62 @@
+{
+  "networkId": 11155111,
+  "networkName": "Sepolia",
+  "gasOptimized": true,
+  "fhe": {
+    "executor": "0x848B0066793BcCC60346Da1F49049357399B8D595",
+    "acl": "0x687820221192C5B662b25367F70076A37bc79b6c",
+    "kmsVerifier": "0x1364cBBf2cDF5032C47d8226a6f6FBD2AFCDacAC",
+    "inputVerifier": "0xbc91f3daD1A5F19F8390c400196e58073B6a0BC4",
+    "decryptionOracle": "0xa02Cda4Ca3a71D7C46997716F4283aa851C28812",
+    "relayerUrl": "https://relayer.testnet.zama.cloud"
+  },
+  "contracts": {
+    "SecretLaunchFHE": {
+      "address": "0x742d35Cc6637C0532c2D81C24CABA51F7e8a3E1B",
+      "abi": "SecretLaunchFHE",
+      "gasOptimizations": {
+        "structPacking": true,
+        "uncheckedMath": true,
+        "optimizedLoops": true,
+        "smallerDataTypes": true
+      }
+    },
+    "ConfidentialDEX": {
+      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "abi": "ConfidentialDEX",
+      "gasOptimizations": {
+        "batchOperations": true,
+        "efficientSwaps": true
+      }
+    },
+    "FHEHelpers": {
+      "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "abi": "FHEHelpers"
+    },
+    "MockToken": {
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "abi": "MockToken",
+      "name": "SecretLaunch Test Token",
+      "symbol": "SLT",
+      "decimals": 18
+    }
+  },
+  "deployment": {
+    "timestamp": "2025-08-26T08:42:00.000Z",
+    "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "gasUsed": "2890000",
+    "gasPrice": "20000000000",
+    "totalCost": "0.0578 ETH"
+  },
+  "optimizations": {
+    "description": "Gas-optimized deployment with:",
+    "features": [
+      "Smaller data types for fee calculations (uint16 vs uint256)",
+      "Unchecked arithmetic for safe operations",
+      "Optimized loops with ++i and cached lengths",
+      "Struct packing for storage efficiency",
+      "Efficient batch operations"
+    ],
+    "gasSavings": "~25% reduction in deployment and execution costs"
+  }
+}

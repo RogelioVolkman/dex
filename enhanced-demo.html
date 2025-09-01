@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecretLaunch - Enhanced Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1e1b4b 50%, #312e81 100%);
+            min-height: 100vh;
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+        .btn-success {
+            background: linear-gradient(to right, #10b981, #059669);
+        }
+        .btn-warning {
+            background: linear-gradient(to right, #f59e0b, #d97706);
+        }
+        .section { display: none; }
+        .section.active { display: block; }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal.show { display: flex; }
+        .input-field {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        🛡️
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold text-gradient">SecretLaunch</span>
+                        <div class="text-xs text-gray-400">FHE Powered</div>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" onclick="showSection('home')" class="text-gray-300 hover:text-white transition-colors">Home</a>
+                    <a href="#" onclick="showSection('campaigns')" class="text-gray-300 hover:text-white transition-colors">Campaigns</a>
+                    <a href="#" onclick="showSection('create')" class="text-gray-300 hover:text-white transition-colors">Launch</a>
+                    <a href="#" onclick="showSection('dex')" class="text-gray-300 hover:text-white transition-colors">DEX</a>
+                    <a href="#" onclick="showSection('analytics')" class="text-gray-300 hover:text-white transition-colors">Analytics</a>
+                </div>
+                
+                <button id="connectWalletBtn" onclick="connectWallet()" class="btn-primary text-white px-6 py-2 rounded-xl font-medium">
+                    Connect Wallet
+                </button>
+                <div id="walletInfo" style="display: none;" class="text-white text-sm">
+                    <span id="accountAddress"></span>
+                    <br>
+                    <span id="accountBalance"></span> ETH
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Section -->
+    <section id="home" class="section active pt-32 pb-20 relative overflow-hidden">
+        <!-- Animated background elements -->
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-3xl animate-float"></div>
+            <div class="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-float" style="animation-delay: -2s;"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center max-w-4xl mx-auto">
+                <!-- Badge -->
+                <div class="inline-flex items-center space-x-2 glass rounded-full px-4 py-2 mb-8">
+                    <span class="text-yellow-400">✨</span>
+                    <span class="text-sm font-medium text-gray-200">Powered by Zama FHE Protocol</span>
+                </div>
+
+                <!-- Main heading -->
+                <h1 class="text-5xl md:text-7xl font-bold mb-6">
+                    <span class="text-gradient">Secret</span>
+                    <span class="text-white">Launch</span>
+                </h1>
+
+                <!-- Subtitle -->
+                <p class="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
+                    The first fully confidential fundraising platform using
+                    <span class="text-indigo-400 font-semibold">Fully Homomorphic Encryption</span>
+                    for anonymous decentralized investments
+                </p>
+
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+                    <button onclick="showSection('campaigns')" class="btn-primary text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-xl">
+                        Explore Campaigns →
+                    </button>
+                    <button onclick="showSection('create')" class="glass text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/20 transition-all">
+                        Launch Project ✨
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Campaigns Section -->
+    <section id="campaigns" class="section pt-32 pb-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-white mb-6">Active Campaigns</h2>
+                <p class="text-xl text-gray-300">Discover exciting projects to invest in</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="campaignsList">
+                <!-- Campaign cards will be populated here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Create Campaign Section -->
+    <section id="create" class="section pt-32 pb-20">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-white mb-6">Launch Your Project</h2>
+                <p class="text-xl text-gray-300">Create a confidential fundraising campaign</p>
+            </div>
+            
+            <div class="glass rounded-3xl p-8">
+                <form id="createCampaignForm" class="space-y-6">
+                    <div>
+                        <label class="block text-white text-sm font-medium mb-2">Project Name</label>
+                        <input type="text" id="projectName" class="w-full p-3 rounded-xl input-field" placeholder="Enter project name" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-white text-sm font-medium mb-2">Description</label>
+                        <textarea id="projectDescription" class="w-full p-3 rounded-xl input-field h-32" placeholder="Describe your project" required></textarea>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Funding Goal (ETH)</label>
+                            <input type="number" id="fundingGoal" class="w-full p-3 rounded-xl input-field" placeholder="0.0" step="0.01" min="0" required>
+                        </div>
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Duration (Days)</label>
+                            <input type="number" id="campaignDuration" class="w-full p-3 rounded-xl input-field" placeholder="30" min="1" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full btn-primary text-white px-6 py-3 rounded-xl font-semibold">
+                        Create Campaign 🚀
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- DEX Section -->
+    <section id="dex" class="section pt-32 pb-20">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-white mb-6">Confidential DEX</h2>
+                <p class="text-xl text-gray-300">Trade tokens with complete privacy</p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Trading Interface -->
+                <div class="glass rounded-3xl p-8">
+                    <h3 class="text-2xl font-bold text-white mb-6">Trade</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">From</label>
+                            <div class="flex space-x-2">
+                                <select id="fromToken" class="flex-1 p-3 rounded-xl input-field">
+                                    <option value="ETH">ETH</option>
+                                    <option value="USDC">USDC</option>
+                                    <option value="USDT">USDT</option>
+                                    <option value="DAI">DAI</option>
+                                </select>
+                                <input type="number" id="fromAmount" class="flex-1 p-3 rounded-xl input-field" placeholder="0.0" step="0.01" min="0">
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button onclick="swapTokens()" class="bg-white/20 hover:bg-white/30 p-2 rounded-full transition-colors">
+                                ↕️
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">To</label>
+                            <div class="flex space-x-2">
+                                <select id="toToken" class="flex-1 p-3 rounded-xl input-field">
+                                    <option value="USDC">USDC</option>
+                                    <option value="ETH">ETH</option>
+                                    <option value="USDT">USDT</option>
+                                    <option value="DAI">DAI</option>
+                                </select>
+                                <input type="number" id="toAmount" class="flex-1 p-3 rounded-xl input-field" placeholder="0.0" readonly>
+                            </div>
+                        </div>
+                        
+                        <button onclick="executeTrade()" class="w-full btn-primary text-white px-6 py-3 rounded-xl font-semibold">
+                            Swap Tokens 🔄
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Order Book -->
+                <div class="glass rounded-3xl p-8">
+                    <h3 class="text-2xl font-bold text-white mb-6">Order Book</h3>
+                    <div id="orderBook">
+                        <div class="space-y-2">
+                            <div class="text-sm text-gray-300 grid grid-cols-3 gap-2 border-b border-white/10 pb-2">
+                                <span>Price</span>
+                                <span>Amount</span>
+                                <span>Total</span>
+                            </div>
+                            <!-- Mock order book data -->
+                            <div class="text-sm text-red-400 grid grid-cols-3 gap-2">
+                                <span>2450.32</span>
+                                <span>0.5234</span>
+                                <span>1283.45</span>
+                            </div>
+                            <div class="text-sm text-red-400 grid grid-cols-3 gap-2">
+                                <span>2449.87</span>
+                                <span>1.2345</span>
+                                <span>3024.67</span>
+                            </div>
+                            <div class="text-sm text-green-400 grid grid-cols-3 gap-2">
+                                <span>2445.12</span>
+                                <span>0.8765</span>
+                                <span>2143.23</span>
+                            </div>
+                            <div class="text-sm text-green-400 grid grid-cols-3 gap-2">
+                                <span>2444.78</span>
+                                <span>2.1234</span>
+                                <span>5189.45</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analytics Section -->
+    <section id="analytics" class="section pt-32 pb-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-white mb-6">Platform Analytics</h2>
+                <p class="text-xl text-gray-300">Privacy-preserving insights</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                <div class="glass rounded-2xl p-6 text-center">
+                    <div class="text-green-400 text-2xl mb-2">💰</div>
+                    <div class="text-3xl font-bold text-white mb-1" id="totalRaised">$12.5M</div>
+                    <div class="text-gray-300 text-sm">Total Raised</div>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center">
+                    <div class="text-blue-400 text-2xl mb-2">🚀</div>
+                    <div class="text-3xl font-bold text-white mb-1" id="activeProjects">234</div>
+                    <div class="text-gray-300 text-sm">Active Projects</div>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center">
+                    <div class="text-purple-400 text-2xl mb-2">👥</div>
+                    <div class="text-3xl font-bold text-white mb-1" id="totalUsers">15.7K</div>
+                    <div class="text-gray-300 text-sm">Total Users</div>
+                </div>
+                <div class="glass rounded-2xl p-6 text-center">
+                    <div class="text-indigo-400 text-2xl mb-2">📈</div>
+                    <div class="text-3xl font-bold text-white mb-1" id="successRate">89%</div>
+                    <div class="text-gray-300 text-sm">Success Rate</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Investment Modal -->
+    <div id="investModal" class="modal items-center justify-center">
+        <div class="glass rounded-3xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold text-white mb-6">Invest in Project</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-white text-sm font-medium mb-2">Investment Amount (ETH)</label>
+                    <input type="number" id="investAmount" class="w-full p-3 rounded-xl input-field" placeholder="0.0" step="0.01" min="0">
+                </div>
+                <div class="flex space-x-4">
+                    <button onclick="processInvestment()" class="flex-1 btn-success text-white px-6 py-3 rounded-xl font-semibold">
+                        Invest 💰
+                    </button>
+                    <button onclick="closeDonationModal()" class="flex-1 btn-warning text-white px-6 py-3 rounded-xl font-semibold">
+                        Donate ❤️
+                    </button>
+                </div>
+            </div>
+            <button onclick="closeModal('investModal')" class="mt-4 w-full glass text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/20">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let web3Provider = null;
+        let userAccount = null;
+        let campaigns = [];
+        let currentCampaignId = null;
+
+        // Mock data for demonstration
+        const mockCampaigns = [
+            {
+                id: 1,
+                name: "DeFi Innovation Protocol",
+                description: "Revolutionary DeFi protocol with privacy-first approach",
+                goal: 100,
+                raised: 67.5,
+                endDate: "2024-12-31",
+                creator: "0x1234...5678"
+            },
+            {
+                id: 2,
+                name: "Green Energy Token",
+                description: "Blockchain-based carbon credit trading platform",
+                goal: 50,
+                raised: 32.1,
+                endDate: "2024-11-15",
+                creator: "0xabcd...efgh"
+            },
+            {
+                id: 3,
+                name: "Privacy Gaming Platform",
+                description: "Anonymous gaming with encrypted scores and rewards",
+                goal: 75,
+                raised: 45.8,
+                endDate: "2024-10-30",
+                creator: "0x9876...5432"
+            }
+        ];
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 SecretLaunch Enhanced Demo Loaded!');
+            loadCampaigns();
+            
+            // Handle form submissions
+            document.getElementById('createCampaignForm').addEventListener('submit', createCampaign);
+        });
+
+        // Navigation
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName).classList.add('active');
+            
+            // Special handling for campaigns section
+            if (sectionName === 'campaigns') {
+                loadCampaigns();
+            }
+        }
+
+        // Wallet connection
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // Request account access
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    if (accounts.length > 0) {
+                        web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+                        userAccount = accounts[0];
+                        
+                        // Get balance
+                        const balance = await web3Provider.getBalance(userAccount);
+                        const ethBalance = ethers.utils.formatEther(balance);
+                        
+                        // Update UI
+                        document.getElementById('connectWalletBtn').style.display = 'none';
+                        document.getElementById('walletInfo').style.display = 'block';
+                        document.getElementById('accountAddress').textContent = userAccount.substr(0, 6) + '...' + userAccount.substr(-4);
+                        document.getElementById('accountBalance').textContent = parseFloat(ethBalance).toFixed(4);
+                        
+                        showNotification('Wallet connected successfully!', 'success');
+                    }
+                } catch (error) {
+                    console.error('Error connecting wallet:', error);
+                    showNotification('Failed to connect wallet', 'error');
+                }
+            } else {
+                showNotification('Please install MetaMask or another Web3 wallet', 'error');
+            }
+        }
+
+        // Campaign management
+        function loadCampaigns() {
+            const campaignsList = document.getElementById('campaignsList');
+            campaignsList.innerHTML = '';
+            
+            mockCampaigns.forEach(campaign => {
+                const progress = (campaign.raised / campaign.goal) * 100;
+                const campaignCard = `
+                    <div class="glass rounded-2xl p-6 hover:bg-white/15 transition-all">
+                        <h3 class="text-xl font-bold text-white mb-3">${campaign.name}</h3>
+                        <p class="text-gray-300 mb-4 text-sm">${campaign.description}</p>
+                        
+                        <div class="mb-4">
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-300">Progress</span>
+                                <span class="text-white">${campaign.raised}/${campaign.goal} ETH</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <button onclick="openInvestModal(${campaign.id})" class="flex-1 btn-primary text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                Invest 💰
+                            </button>
+                            <button onclick="openDonationModal(${campaign.id})" class="flex-1 btn-success text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                Donate ❤️
+                            </button>
+                        </div>
+                    </div>
+                `;
+                campaignsList.innerHTML += campaignCard;
+            });
+        }
+
+        // Investment and donation modals
+        function openInvestModal(campaignId) {
+            currentCampaignId = campaignId;
+            document.getElementById('investModal').classList.add('show');
+        }
+
+        function openDonationModal(campaignId) {
+            currentCampaignId = campaignId;
+            document.getElementById('investModal').classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            currentCampaignId = null;
+        }
+
+        function closeDonationModal() {
+            processDonation();
+        }
+
+        // Transaction processing
+        async function processInvestment() {
+            if (!web3Provider || !userAccount) {
+                showNotification('Please connect your wallet first', 'error');
+                return;
+            }
+
+            const amount = document.getElementById('investAmount').value;
+            if (!amount || parseFloat(amount) <= 0) {
+                showNotification('Please enter a valid investment amount', 'error');
+                return;
+            }
+
+            try {
+                const signer = web3Provider.getSigner();
+                const transaction = {
+                    to: '0x1234567890123456789012345678901234567890', // Mock contract address
+                    value: ethers.utils.parseEther(amount),
+                    gasLimit: 21000
+                };
+
+                showNotification('Processing investment transaction...', 'info');
+                const tx = await signer.sendTransaction(transaction);
+                
+                showNotification('Transaction sent! Waiting for confirmation...', 'info');
+                await tx.wait();
+                
+                // Update campaign data
+                const campaign = mockCampaigns.find(c => c.id === currentCampaignId);
+                if (campaign) {
+                    campaign.raised += parseFloat(amount);
+                    loadCampaigns();
+                }
+                
+                showNotification('Investment successful! 🎉', 'success');
+                closeModal('investModal');
+                
+            } catch (error) {
+                console.error('Investment error:', error);
+                showNotification('Investment failed: ' + error.message, 'error');
+            }
+        }
+
+        async function processDonation() {
+            if (!web3Provider || !userAccount) {
+                showNotification('Please connect your wallet first', 'error');
+                return;
+            }
+
+            const amount = document.getElementById('investAmount').value;
+            if (!amount || parseFloat(amount) <= 0) {
+                showNotification('Please enter a valid donation amount', 'error');
+                return;
+            }
+
+            try {
+                const signer = web3Provider.getSigner();
+                const transaction = {
+                    to: '0x1234567890123456789012345678901234567890', // Mock contract address
+                    value: ethers.utils.parseEther(amount),
+                    gasLimit: 21000
+                };
+
+                showNotification('Processing donation transaction...', 'info');
+                const tx = await signer.sendTransaction(transaction);
+                
+                showNotification('Transaction sent! Waiting for confirmation...', 'info');
+                await tx.wait();
+                
+                // Update campaign data
+                const campaign = mockCampaigns.find(c => c.id === currentCampaignId);
+                if (campaign) {
+                    campaign.raised += parseFloat(amount);
+                    loadCampaigns();
+                }
+                
+                showNotification('Donation successful! Thank you! ❤️', 'success');
+                closeModal('investModal');
+                
+            } catch (error) {
+                console.error('Donation error:', error);
+                showNotification('Donation failed: ' + error.message, 'error');
+            }
+        }
+
+        // Create campaign
+        async function createCampaign(event) {
+            event.preventDefault();
+            
+            if (!web3Provider || !userAccount) {
+                showNotification('Please connect your wallet first', 'error');
+                return;
+            }
+
+            const projectName = document.getElementById('projectName').value;
+            const projectDescription = document.getElementById('projectDescription').value;
+            const fundingGoal = document.getElementById('fundingGoal').value;
+            const campaignDuration = document.getElementById('campaignDuration').value;
+
+            if (!projectName || !projectDescription || !fundingGoal || !campaignDuration) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                showNotification('Creating campaign...', 'info');
+                
+                // Mock campaign creation (in real app, this would interact with smart contract)
+                const newCampaign = {
+                    id: mockCampaigns.length + 1,
+                    name: projectName,
+                    description: projectDescription,
+                    goal: parseFloat(fundingGoal),
+                    raised: 0,
+                    endDate: new Date(Date.now() + parseInt(campaignDuration) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    creator: userAccount
+                };
+
+                mockCampaigns.push(newCampaign);
+                
+                showNotification('Campaign created successfully! 🚀', 'success');
+                document.getElementById('createCampaignForm').reset();
+                showSection('campaigns');
+                
+            } catch (error) {
+                console.error('Campaign creation error:', error);
+                showNotification('Failed to create campaign', 'error');
+            }
+        }
+
+        // DEX functions
+        function swapTokens() {
+            const fromToken = document.getElementById('fromToken');
+            const toToken = document.getElementById('toToken');
+            
+            const temp = fromToken.value;
+            fromToken.value = toToken.value;
+            toToken.value = temp;
+            
+            // Clear amounts
+            document.getElementById('fromAmount').value = '';
+            document.getElementById('toAmount').value = '';
+        }
+
+        async function executeTrade() {
+            if (!web3Provider || !userAccount) {
+                showNotification('Please connect your wallet first', 'error');
+                return;
+            }
+
+            const fromAmount = document.getElementById('fromAmount').value;
+            const fromToken = document.getElementById('fromToken').value;
+            const toToken = document.getElementById('toToken').value;
+
+            if (!fromAmount || parseFloat(fromAmount) <= 0) {
+                showNotification('Please enter a valid amount', 'error');
+                return;
+            }
+
+            try {
+                showNotification('Executing trade...', 'info');
+                
+                // Mock exchange rate calculation
+                const mockRates = {
+                    'ETH': 2450,
+                    'USDC': 1,
+                    'USDT': 1,
+                    'DAI': 1
+                };
+                
+                const fromRate = mockRates[fromToken];
+                const toRate = mockRates[toToken];
+                const toAmount = (parseFloat(fromAmount) * fromRate / toRate).toFixed(6);
+                
+                document.getElementById('toAmount').value = toAmount;
+                
+                // Simulate transaction
+                const signer = web3Provider.getSigner();
+                const transaction = {
+                    to: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd', // Mock DEX contract
+                    value: fromToken === 'ETH' ? ethers.utils.parseEther(fromAmount) : 0,
+                    gasLimit: 100000
+                };
+
+                const tx = await signer.sendTransaction(transaction);
+                showNotification('Trade executed successfully! 🔄', 'success');
+                await tx.wait();
+                
+            } catch (error) {
+                console.error('Trade error:', error);
+                showNotification('Trade failed: ' + error.message, 'error');
+            }
+        }
+
+        // Calculate exchange rates in real-time
+        document.getElementById('fromAmount').addEventListener('input', function() {
+            const fromAmount = this.value;
+            const fromToken = document.getElementById('fromToken').value;
+            const toToken = document.getElementById('toToken').value;
+            
+            if (fromAmount && parseFloat(fromAmount) > 0) {
+                const mockRates = {
+                    'ETH': 2450,
+                    'USDC': 1,
+                    'USDT': 1,
+                    'DAI': 1
+                };
+                
+                const fromRate = mockRates[fromToken];
+                const toRate = mockRates[toToken];
+                const toAmount = (parseFloat(fromAmount) * fromRate / toRate).toFixed(6);
+                
+                document.getElementById('toAmount').value = toAmount;
+            } else {
+                document.getElementById('toAmount').value = '';
+            }
+        });
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-6 z-50 glass rounded-xl p-4 backdrop-blur-xl transition-all duration-300 transform translate-x-full`;
+            
+            const colors = {
+                success: 'border-green-500/30 bg-green-500/20',
+                error: 'border-red-500/30 bg-red-500/20',
+                info: 'border-blue-500/30 bg-blue-500/20'
+            };
+            
+            notification.className += ` ${colors[type]}`;
+            
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-green-400' : type === 'error' ? 'bg-red-400' : 'bg-blue-400'} animate-pulse"></div>
+                    <span class="text-white text-sm font-medium">${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 4000);
+        }
+
+        // Handle wallet events
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', function (accounts) {
+                if (accounts.length > 0) {
+                    userAccount = accounts[0];
+                    document.getElementById('accountAddress').textContent = userAccount.substr(0, 6) + '...' + userAccount.substr(-4);
+                } else {
+                    // User disconnected
+                    userAccount = null;
+                    document.getElementById('connectWalletBtn').style.display = 'block';
+                    document.getElementById('walletInfo').style.display = 'none';
+                }
+            });
+
+            window.ethereum.on('chainChanged', function (chainId) {
+                // Reload page when chain changes (recommended)
+                window.location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
